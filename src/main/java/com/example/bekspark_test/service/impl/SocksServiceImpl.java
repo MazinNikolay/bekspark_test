@@ -21,6 +21,7 @@ public class SocksServiceImpl implements SocksService {
     @Transactional
     public void income(SocksDto socksDto) {
         logger.info("was invoked socks income method in service");
+        checkValidDto(socksDto);
         socksDto.setSocksColor(socksDto.getSocksColor().toLowerCase());
         Socks socks = repository.findByData(socksDto.getSocksColor(),
                 socksDto.getSocksCottonPart()).orElse(new Socks());
@@ -34,6 +35,7 @@ public class SocksServiceImpl implements SocksService {
     @Transactional
     public void outcome(SocksDto socksDto) {
         logger.info("was invoked socks outcome method in service");
+        checkValidDto(socksDto);
         Socks socks = repository.findByData(socksDto.getSocksColor().toLowerCase(),
                 socksDto.getSocksCottonPart()).orElseThrow(() ->
                 new IllegalArgumentException("Those socks not found. Illegal argument"));
@@ -49,6 +51,7 @@ public class SocksServiceImpl implements SocksService {
     @Transactional
     public int getQuantity(SocksQueryDto socksQueryDto) {
         logger.info("was invoked socks get quantity method in service");
+        checkValidDto(socksQueryDto);
         socksQueryDto.setCompareCommand(socksQueryDto.getCompareCommand().toLowerCase());
         socksQueryDto.setSocksColor(socksQueryDto.getSocksColor().toLowerCase());
         return switch (socksQueryDto.getCompareCommand()) {
@@ -65,6 +68,7 @@ public class SocksServiceImpl implements SocksService {
     @Override
     @Transactional
     public void update(Long id, SocksDto socksDto) {
+        checkValidDto(socksDto);
         logger.info("was invoked socks update method in service");
         Socks socks = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Those socks not found. Illegal argument"));
@@ -72,5 +76,22 @@ public class SocksServiceImpl implements SocksService {
         socks.setSocksCottonPart(socksDto.getSocksCottonPart());
         socks.setSocksQuantity(socksDto.getSocksQuantity());
         repository.save(socks);
+    }
+
+    private void checkValidDto(SocksDto dto) {
+        boolean invalidColor = dto.getSocksColor() == null  || dto.getSocksColor().isBlank();
+        boolean invalidCotton = dto.getSocksCottonPart() < 0;
+        boolean invalidQuantity = dto.getSocksQuantity() < 0;
+        if (invalidColor || invalidCotton || invalidQuantity) {
+            throw new IllegalArgumentException("Invalid arguments passed to dto");
+        }
+    }
+
+    private void checkValidDto(SocksQueryDto dto) {
+        boolean invalidColor = dto.getSocksColor() == null || dto.getSocksColor().isBlank();
+        boolean invalidCotton = dto.getSocksCottonPart() < 0;
+        if (invalidColor || invalidCotton) {
+            throw new IllegalArgumentException("Invalid arguments passed to dto");
+        }
     }
 }
